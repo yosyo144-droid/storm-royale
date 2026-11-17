@@ -35,8 +35,8 @@ function makePlayer(x, y, isBot, name) {
     kills: 0, damageDealt: 0, hitFlash: 0, kick: 0,
     walkPhase: rand(0, TAU), sprinting: false, lastShot: -99,
     // bot brain
-    skill: rand(0.35, 0.95), vision: 580, think: rand(0, 0.2),
-    lootPhase: rand(11, 24), burstT: 0, burstAmmo: randInt(3, 6),
+    skill: rand(0.35, 0.95), vision: 470, think: rand(0, 0.2),
+    lootPhase: rand(28, 46), burstT: 0, burstAmmo: randInt(3, 6),
     moveAngle: rand(0, TAU), moveSpeed: 0, strafeDir: Math.random() < 0.5 ? -1 : 1,
     strafeT: 0, target: null, targetMemory: 0, react: 0, lastX: x, lastY: y,
     stuckT: 0, lootTarget: null, healCd: 0, aggro: Math.random(),
@@ -433,7 +433,7 @@ function updateBot(b, dt) {
     b.think = rand(0.1, 0.22);
     // ---- perception
     const effSkill = b.skill * (0.3 + 0.7 * clamp(G.time / 110, 0, 1));
-    const vision = b.lootPhase > 0 ? 265 : b.vision;
+    const vision = b.lootPhase > 0 ? 205 : b.vision;
     let best = null, bestD = Infinity;
     for (const p of G.players) {
       if (!p.alive || p === b) continue;
