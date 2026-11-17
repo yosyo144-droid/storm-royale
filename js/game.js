@@ -67,19 +67,20 @@ function startMatch() {
   // spawn points spread over the map
   const spawns = [];
   for (let i = 0; i < TOTAL_PLAYERS; i++) {
-    let pos = null;
-    for (let a = 0; a < 240; a++) {
+    let best = null, bestScore = -1;
+    for (let a = 0; a < 150; a++) {
       const x = rand(240, WORLD_SIZE - 240);
       const y = rand(240, WORLD_SIZE - 240);
       if (blockedAt(x, y, PLAYER_R + 16)) continue;
-      let ok = true;
+      let minD = Infinity;
       for (const s of spawns) {
-        if (dist2(s.x, s.y, x, y) < 470 * 470) { ok = false; break; }
+        const d = dist2(s.x, s.y, x, y);
+        if (d < minD) minD = d;
       }
-      if (ok) { pos = { x, y }; break; }
+      if (minD > bestScore) { bestScore = minD; best = { x, y }; }
+      if (minD > 560 * 560) break;
     }
-    if (!pos) pos = { x: rand(400, WORLD_SIZE - 400), y: rand(400, WORLD_SIZE - 400) };
-    spawns.push(pos);
+    spawns.push(best || { x: WORLD_SIZE / 2 + rand(-300, 300), y: WORLD_SIZE / 2 + rand(-300, 300) });
   }
   otherSpawnPoints = spawns;
 
@@ -89,7 +90,7 @@ function startMatch() {
     const p = makePlayer(spawns[i].x, spawns[i].y, isBot, isBot ? (names[i % names.length] + (i > names.length ? i : '')) : playerName);
     giveWeapon(p, 'pistol', 42);
     G.players.push(p);
-    if (!isBot) G.player = p;
+    if (!isBot) { G.player = p; p.shield = 25; }
   }
   G.alive = TOTAL_PLAYERS;
 
