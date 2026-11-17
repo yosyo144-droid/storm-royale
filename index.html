@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080b11">
+<title>STORM ROYALE — Battle Royale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#080b11;
+    font-family:'Rajdhani','Segoe UI',system-ui,sans-serif;color:#e8f1f8;
+    user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
+  #game{display:block;position:fixed;inset:0;width:100%;height:100%}
+  body.playing #game{cursor:none}
+  .hidden{display:none!important}
+
+  /* ---------------- start screen ---------------- */
+  #startScreen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:18px;text-align:center;padding:26px;
+    background:
+      radial-gradient(circle at 50% 18%,rgba(176,107,255,.30),transparent 55%),
+      radial-gradient(circle at 18% 82%,rgba(57,211,255,.16),transparent 55%),
+      linear-gradient(165deg,#0a0f18,#070a10 60%,#0d0a16)}
+  #startScreen::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+  .kicker{font-family:'Chakra Petch',sans-serif;letter-spacing:.42em;font-size:11px;
+    color:#8fa4bb;text-transform:uppercase;position:relative;z-index:1}
+  #gameName{font-family:'Chakra Petch',sans-serif;font-size:clamp(42px,11vw,96px);line-height:.92;
+    font-weight:700;letter-spacing:.02em;margin:0;position:relative;z-index:1;
+    background:linear-gradient(180deg,#ffffff 10%,#7fe4ff 48%,#b06bff 96%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 30px rgba(120,180,255,.45))}
+  .tagline{max-width:600px;font-size:clamp(14px,2.4vw,18px);color:#a9bbcd;line-height:1.45;
+    position:relative;z-index:1}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;position:relative;z-index:1}
+  .chip{border:1px solid rgba(127,228,255,.28);background:rgba(20,32,46,.7);border-radius:999px;
+    padding:7px 15px;font-size:13px;color:#bfe7f7;font-weight:600;letter-spacing:.04em}
+  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;
+    max-width:660px;width:100%;position:relative;z-index:1;margin-top:4px}
+  .ctrl{background:rgba(13,20,30,.72);border:1px solid rgba(255,255,255,.08);border-radius:12px;
+    padding:9px 12px;display:flex;align-items:center;gap:9px;font-size:13px;color:#a9bbcd}
+  .ctrl b{font-family:'Chakra Petch',sans-serif;color:#eaf6ff;background:rgba(127,228,255,.13);
+    border:1px solid rgba(127,228,255,.25);border-radius:7px;padding:3px 8px;font-size:12px;
+    letter-spacing:.06em;min-width:34px;text-align:center}
+  #btnStart{margin-top:6px;position:relative;z-index:1;cursor:pointer;border:0;
+    font-family:'Chakra Petch',sans-serif;font-size:clamp(18px,3.4vw,24px);font-weight:700;
+    letter-spacing:.14em;color:#04121a;padding:16px 58px;border-radius:14px;
+    background:linear-gradient(135deg,#7fe4ff,#39d3ff 40%,#8a7dff);
+    box-shadow:0 12px 40px rgba(57,211,255,.35),inset 0 -3px 0 rgba(0,0,0,.18);
+    transition:transform .12s ease,box-shadow .12s ease}
+  #btnStart:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 16px 48px rgba(57,211,255,.5)}
+  #btnStart:active{transform:scale(.98)}
+  .fineprint{font-size:12px;color:#67788a;position:relative;z-index:1}
+
+  /* ---------------- HUD ---------------- */
+  #hud{position:fixed;inset:0;z-index:10;pointer-events:none;font-family:'Rajdhani',sans-serif}
+  .top-left{position:absolute;top:14px;left:16px;display:flex;gap:10px;align-items:flex-start}
+  .pill{background:rgba(8,14,22,.72);border:1px solid rgba(255,255,255,.1);border-radius:11px;
+    padding:6px 13px;display:flex;flex-direction:column;line-height:1;backdrop-filter:blur(6px)}
+  .pill .k{font-size:10px;letter-spacing:.18em;color:#7f93a6;font-weight:600}
+  .pill .v{font-family:'Chakra Petch',sans-serif;font-size:22px;font-weight:700;color:#eaf6ff}
+  .pill.alive .v{color:#7fe4ff}
+  .pill.kills .v{color:#ffd166}
+  .top-center{position:absolute;top:14px;left:50%;transform:translateX(-50%);text-align:center}
+  .storm-box{background:rgba(8,14,22,.72);border:1px solid rgba(176,107,255,.35);border-radius:12px;
+    padding:6px 16px;backdrop-filter:blur(6px);min-width:118px}
+  .storm-box .k{font-size:10px;letter-spacing:.18em;color:#bda6e0;font-weight:600}
+  .storm-box .v{font-family:'Chakra Petch',sans-serif;font-size:21px;font-weight:700;color:#e0c6ff}
+  #timerText{margin-top:5px;font-family:'Chakra Petch',sans-serif;font-size:12px;color:#7f93a6;letter-spacing:.1em}
+  #feed{position:absolute;top:96px;left:16px;display:flex;flex-direction:column;gap:5px;max-width:44vw}
+  .feed-item{font-size:13px;font-weight:600;background:rgba(8,14,22,.62);border-left:3px solid rgba(255,255,255,.22);
+    padding:4px 10px;border-radius:0 7px 7px 0;backdrop-filter:blur(4px);animation:slideIn .22s ease}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+
+  .bottom-left{position:absolute;left:16px;bottom:18px;width:min(340px,52vw)}
+  .bar-wrap{background:rgba(8,14,22,.7);border:1px solid rgba(255,255,255,.1);border-radius:10px;
+    padding:6px 8px;margin-bottom:7px;position:relative;backdrop-filter:blur(6px)}
+  .bar-label{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;
+    color:#8fa4bb;font-weight:700;margin-bottom:4px}
+  .bar-label b{font-family:'Chakra Petch',sans-serif;color:#eaf6ff;font-size:13px;letter-spacing:0}
+  .bar{height:11px;background:rgba(255,255,255,.09);border-radius:6px;overflow:hidden}
+  .bar>div{height:100%;width:100%;border-radius:6px;transition:width .12s linear}
+  #hpFill{background:linear-gradient(90deg,#4ade80,#22c55e)}
+  #shieldFill{background:linear-gradient(90deg,#8fd0ff,#3b9cff)}
+  .items{display:flex;gap:8px;margin-top:2px}
+  .item{background:rgba(8,14,22,.7);border:1px solid rgba(255,255,255,.1);border-radius:9px;
+    padding:5px 11px;font-size:12px;color:#9fb2c4;font-weight:600;display:flex;gap:7px;align-items:center}
+  .item i{font-style:normal;font-family:'Chakra Petch',sans-serif;font-size:14px;font-weight:700}
+  .item.med i{color:#7dffb0}
+  .item.pot i{color:#8fd0ff}
+
+  .bottom-right{position:absolute;right:16px;bottom:18px;text-align:right;
+    background:rgba(8,14,22,.7);border:1px solid rgba(255,255,255,.1);border-radius:12px;
+    padding:8px 14px;backdrop-filter:blur(6px)}
+  #weaponName{font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:.12em;color:#8fa3b8;font-weight:700}
+  .ammo{display:flex;align-items:baseline;gap:6px;justify-content:flex-end;margin-top:2px}
+  #ammoMag{font-family:'Chakra Petch',sans-serif;font-size:34px;font-weight:700;color:#fff;line-height:1}
+  #ammoRes{font-size:15px;color:#8fa4bb;font-weight:600}
+
+  #prompt{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);opacity:0;
+    background:rgba(8,14,22,.8);border:1px solid rgba(127,228,255,.4);border-radius:10px;
+    padding:8px 18px;font-size:14px;font-weight:700;letter-spacing:.06em;color:#bfe7f7;
+    transition:opacity .16s;backdrop-filter:blur(6px)}
+  #zoneWarn{position:absolute;top:84px;left:50%;transform:translateX(-50%);opacity:0;
+    font-family:'Chakra Petch',sans-serif;font-size:14px;font-weight:700;letter-spacing:.22em;
+    color:#ff6b8a;text-shadow:0 0 18px rgba(255,60,110,.8);transition:opacity .2s;white-space:nowrap}
+  #toast{position:fixed;top:20%;left:50%;transform:translate(-50%,-14px) scale(.96);z-index:15;
+    opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
+    font-family:'Chakra Petch',sans-serif;font-size:clamp(15px,3vw,22px);font-weight:700;
+    letter-spacing:.16em;color:#ffe6a8;text-shadow:0 4px 24px rgba(0,0,0,.8),0 0 24px rgba(255,190,80,.4);
+    background:rgba(10,8,20,.5);padding:10px 22px;border-radius:12px;border:1px solid rgba(255,214,102,.3)}
+  #toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+
+  /* ---------------- touch controls ---------------- */
+  #touchUI{position:fixed;inset:0;z-index:12;pointer-events:none}
+  .tbtn{position:absolute;pointer-events:auto;background:rgba(10,18,28,.66);
+    border:1px solid rgba(127,228,255,.32);border-radius:14px;color:#cfe9f7;
+    font-family:'Chakra Petch',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);
+    min-width:64px;height:52px;text-align:center;padding:0 10px}
+  .tbtn:active{background:rgba(57,211,255,.28)}
+  #tReload{right:16px;bottom:132px}
+  #tMed{right:88px;bottom:132px}
+  #tPot{right:160px;bottom:132px}
+  #tPick{right:16px;bottom:192px}
+
+  /* ---------------- end screen ---------------- */
+  #endScreen{position:fixed;inset:0;z-index:22;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:16px;text-align:center;padding:26px;
+    background:radial-gradient(circle at 50% 40%,rgba(10,16,26,.82),rgba(4,6,10,.95));
+    backdrop-filter:blur(9px);animation:fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .end-title{font-family:'Chakra Petch',sans-serif;font-size:clamp(52px,16vw,124px);font-weight:700;
+    line-height:.9;margin:0;letter-spacing:.02em}
+  .end-title.win{color:#ffd166;text-shadow:0 0 50px rgba(255,209,102,.6),
+    0 0 100px rgba(255,160,60,.35);animation:pulseWin 1.8s ease-in-out infinite}
+  @keyframes pulseWin{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
+  .end-title.lose{color:#ff7a90;text-shadow:0 0 40px rgba(255,80,110,.35)}
+  #endStats{min-width:min(430px,88vw);background:rgba(12,18,28,.7);
+    border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 20px}
+  .big-stat{font-family:'Chakra Petch',sans-serif;font-size:13px;letter-spacing:.18em;
+    color:#9fb2c4;margin-bottom:12px;text-align:center}
+  .stat-row{display:flex;justify-content:space-between;padding:7px 2px;font-size:15px;color:#a9bbcd;
+    border-top:1px solid rgba(255,255,255,.06)}
+  .stat-row b{font-family:'Chakra Petch',sans-serif;color:#eaf6ff;font-size:16px}
+  #btnRestart{cursor:pointer;border:0;font-family:'Chakra Petch',sans-serif;
+    font-size:clamp(16px,3vw,20px);font-weight:700;letter-spacing:.12em;color:#04121a;
+    padding:14px 44px;border-radius:13px;
+    background:linear-gradient(135deg,#7fe4ff,#39d3ff 45%,#8a7dff);
+    box-shadow:0 10px 32px rgba(57,211,255,.3);transition:transform .12s}
+  #btnRestart:active{transform:scale(.97)}
+  @media (pointer:coarse){
+    #desktopControls{display:none}
+  }
+  @media (max-width:520px){
+    .bottom-left{width:56vw;bottom:12px;left:12px}
+    .bottom-right{right:12px;bottom:12px;padding:6px 10px}
+    #ammoMag{font-size:28px}
+    #feed{max-width:52vw;top:88px}
+    #tReload{bottom:112px}
+    #tMed{bottom:112px;right:84px}
+    #tPot{bottom:112px;right:152px}
+    #tPick{bottom:172px}
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- ============ HUD ============ -->
+<div id="hud" class="hidden">
+  <div class="top-left">
+    <div class="pill alive"><span class="k">ΖΩΝΤΑΝΟΙ</span><span class="v" id="aliveCount">50</span></div>
+    <div class="pill kills"><span class="k">ΣΚΟΤΩΣΕΙΣ</span><span class="v" id="killCount">0</span></div>
+  </div>
+
+  <div class="top-center">
+    <div class="storm-box">
+      <div class="k" id="stormText">ΚΛΕΙΣΙΜΟ ΣΕ</div>
+      <div class="v" id="stormSub">30s</div>
+    </div>
+    <div id="timerText">0:00</div>
+  </div>
+
+  <div id="zoneWarn">⚠ ΕΙΣΑΙ ΕΚΤΟΣ ΖΩΝΗΣ</div>
+  <div id="feed"></div>
+
+  <div class="bottom-left">
+    <div class="bar-wrap">
+      <div class="bar-label"><span>ΥΓΕΙΑ</span><b id="hpText">100</b></div>
+      <div class="bar"><div id="hpFill"></div></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-label"><span>ΑΣΠΙΔΑ</span><b id="shieldText">0</b></div>
+      <div class="bar"><div id="shieldFill" style="width:0%"></div></div>
+    </div>
+    <div class="items">
+      <div class="item med"><i id="healCount">1</i> ΒΟΗΘ.</div>
+      <div class="item pot"><i id="potCount">1</i> ΑΣΠΙΔΑ</div>
+    </div>
+  </div>
+
+  <div class="bottom-right">
+    <div id="weaponName">ΤΟΥΦΕΚΙ ΕΦΟΔΟΥ</div>
+    <div class="ammo"><span id="ammoMag">30</span><span id="ammoRes">/ 90</span></div>
+  </div>
+
+  <div id="prompt"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ============ TOUCH ============ -->
+<div id="touchUI" class="hidden">
+  <div class="tbtn" id="tReload">ΓΕΜΙΣΜΑ</div>
+  <div class="tbtn" id="tMed">+ΥΓΕΙΑ</div>
+  <div class="tbtn" id="tPot">ΑΣΠΙΔΑ</div>
+  <div class="tbtn" id="tPick">ΟΠΛΟ</div>
+</div>
+
+<!-- ============ START ============ -->
+<div id="startScreen">
+  <div class="kicker">Battle Royale · 50 παίκτες · ένας νικητής</div>
+  <h1 id="gameName">STORM ROYALE</h1>
+  <p class="tagline">Πέσε στον χάρτη, μάζεψε όπλα και άντεξε στην καταιγίδα που κλείνει.
+    Μείνε ο τελευταίος ζωντανός.</p>
+  <div class="chips">
+    <div class="chip">50 ΠΑΙΚΤΕΣ</div>
+    <div class="chip">ΚΛΕΙΝΟΥΣΑ ΖΩΝΗ</div>
+    <div class="chip">LOOT &amp; ΟΠΛΑ</div>
+    <div class="chip">BOTS ΜΕ AI</div>
+  </div>
+  <div class="controls" id="desktopControls">
+    <div class="ctrl"><b>WASD</b> κίνηση</div>
+    <div class="ctrl"><b>ΠΟΝΤΙΚΙ</b> σκόπευση + πυρ</div>
+    <div class="ctrl"><b>SHIFT</b> τρέξιμο</div>
+    <div class="ctrl"><b>R</b> γέμισμα</div>
+    <div class="ctrl"><b>E</b> πάρε όπλο</div>
+    <div class="ctrl"><b>1 / 2</b> βοήθεια / ασπίδα</div>
+  </div>
+  <div class="controls hidden" id="touchControls">
+    <div class="ctrl"><b>ΑΡΙΣΤΕΡΑ</b> joystick κίνησης</div>
+    <div class="ctrl"><b>ΔΕΞΙΑ</b> σκόπευση + αυτόματο πυρ</div>
+    <div class="ctrl"><b>ΚΟΥΜΠΙΑ</b> γέμισμα / υγεία / ασπίδα / όπλο</div>
+  </div>
+  <button id="btnStart">ΠΑΙΞΕ</button>
+  <div class="fineprint">Tip: μείνε κοντά στο κέντρο του κύκλου πριν κλείσει η ζώνη.</div>
+</div>
+
+<!-- ============ END ============ -->
+<div id="endScreen" class="hidden">
+  <h1 class="end-title" id="endTitle">#1</h1>
+  <div id="endStats"></div>
+  <button id="btnRestart">ΠΑΙΞΕ ΞΑΝΑ</button>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/world.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
